@@ -25,8 +25,15 @@ export default function Home() {
   }, [videoStream]);
 
   useEffect(() => {
+    huddleClient.on("app:initialized", () => {
+      console.log("app:initialized");
+    });
     if (audioStream && audioRef.current)
       audioRef.current.srcObject = audioStream;
+
+    return () => {
+      huddleClient.removeAllListeners();
+    };
   }, [audioStream]);
 
   return (
@@ -66,7 +73,6 @@ export default function Home() {
           </Button>
           <Button
             onClick={() => {
-              huddleClient.initialize("pSNb4vwvAz7bbzQdVYCpHWHPO-BTV2oz");
               huddleClient.joinLobby("ngo-tmvu-oxw");
             }}
           >
