@@ -1,6 +1,34 @@
-import Image from 'next/image'
+"use client";
+import Image from "next/image";
+import { sayHello, huddleClient } from "vanilla";
+import Button from "./components/Button";
+import { useEffect, useRef, useState } from "react";
+import VideoElem from "./components/VideoElem";
 
 export default function Home() {
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
+  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [peers, setPeers] = useState<
+    Awaited<ReturnType<typeof huddleClient.getPeers>>
+  >([]);
+  const [tracks, setTracks] = useState<
+    Awaited<ReturnType<typeof huddleClient.getPeerTracks>>[]
+  >([]);
+
+  // refs
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (videoStream && videoRef.current)
+      videoRef.current.srcObject = videoStream;
+  }, [videoStream]);
+
+  useEffect(() => {
+    if (audioStream && audioRef.current)
+      audioRef.current.srcObject = audioStream;
+  }, [audioStream]);
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
@@ -9,105 +37,143 @@ export default function Home() {
           <code className="font-mono font-bold">src/app/page.tsx</code>
         </p>
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+          <Button onClick={sayHello}>SayHello</Button>
         </div>
       </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="grid gap-3">
+        <div className="bg-zinc-800 aspect-video rounded-lg overflow-hidden">
+          <video ref={videoRef} autoPlay />
+
+          {/* <audio ref={audioRef} autoPlay className="" /> */}
+        </div>
+        <div className=" flex gap-3">
+          {tracks.map((track, i) => (
+            <VideoElem key={i} track={track.video} />
+          ))}
+        </div>
       </div>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+      <div className="w-full">
+        <div>Room</div>
+        <div className="flex gap-3  w-full">
+          <Button
+            onClick={() => {
+              huddleClient.initialize("pSNb4vwvAz7bbzQdVYCpHWHPO-BTV2oz");
+            }}
+          >
+            initialize()
+          </Button>
+          <Button
+            onClick={() => {
+              huddleClient.initialize("pSNb4vwvAz7bbzQdVYCpHWHPO-BTV2oz");
+              huddleClient.joinLobby("ngo-tmvu-oxw");
+            }}
+          >
+            joinLobby()
+          </Button>
+          <Button onClick={() => huddleClient.joinRoom()}>joinRoom()</Button>
+          <Button onClick={() => huddleClient.leaveLobby()}>
+            leaveLobby()
+          </Button>
+          <Button onClick={() => huddleClient.leaveRoom()}>leaveRoom()</Button>
+        </div>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+        <div>Audio</div>
+        <div className="flex gap-3">
+          <Button
+            onClick={async () => {
+              const stream = await huddleClient.fetchAudioStream();
+              setAudioStream(stream);
+            }}
+          >
+            fetchAudioStream()
+          </Button>
+          <Button
+            onClick={() => {
+              if (!audioStream) return alert("fetchaudioStream() first");
+              huddleClient.produceAudio(audioStream);
+            }}
+          >
+            produceAudio()
+          </Button>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
+          <Button
+            onClick={() => {
+              huddleClient.stopAudioStream();
+            }}
+          >
+            stopAudioStream()
+          </Button>
+          <Button
+            onClick={() => {
+              huddleClient.stopProducingAudio();
+            }}
+          >
+            stopProducingAudio()
+          </Button>
+        </div>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+        <div>Video</div>
+        <div className="flex gap-3">
+          <Button
+            onClick={async () => {
+              const stream = await huddleClient.fetchVideoStream();
+              setVideoStream(stream);
+            }}
+          >
+            fetchVideoStream()
+          </Button>
+          <Button
+            onClick={() => {
+              if (!videoStream) return alert("fetchVideoStream() first");
+              huddleClient.produceVideo(videoStream);
+            }}
+          >
+            produceVideo()
+          </Button>
+
+          <Button
+            onClick={() => {
+              huddleClient.stopVideoStream();
+            }}
+          >
+            stopVideoStream()
+          </Button>
+          <Button
+            onClick={() => {
+              huddleClient.stopProducingVideo();
+            }}
+          >
+            stopProducingVideo()
+          </Button>
+        </div>
+        <div>Peers</div>
+        <Button
+          onClick={() => {
+            const _peers = huddleClient.getPeers();
+            console.log({ _peers });
+
+            setPeers(_peers);
+          }}
         >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+          getPeers()
+        </Button>
+        <Button
+          onClick={() => {
+            const _tracks = peers.map((peer) => {
+              console.log({ peer });
+
+              return huddleClient.getPeerTracks(peer.peerId);
+            });
+
+            console.log({ _tracks });
+            setTracks(_tracks);
+          }}
+        >
+          getPeerTracks()
+        </Button>
       </div>
     </main>
-  )
+  );
 }

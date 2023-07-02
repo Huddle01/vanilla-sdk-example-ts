@@ -41,6 +41,9 @@ dependencies:
   typescript:
     specifier: 5.1.5
     version: 5.1.5
+  vanilla:
+    specifier: link:../../../DAO/sdk/vanilla
+    version: link:../../../DAO/sdk/vanilla
 
 packages:
 
