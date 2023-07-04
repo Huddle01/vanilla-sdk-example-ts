@@ -1,9 +1,10 @@
 "use client";
 import Image from "next/image";
-import { sayHello, huddleClient } from "vanilla";
+import { sayHello, huddleClient } from "@huddle01/web-core";
 import Button from "./components/Button";
 import { useEffect, useRef, useState } from "react";
 import VideoElem from "./components/VideoElem";
+import AudioElem from "./components/AudioElem";
 
 export default function Home() {
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
@@ -25,8 +26,8 @@ export default function Home() {
   }, [videoStream]);
 
   useEffect(() => {
-    huddleClient.on("app:initialized", () => {
-      console.log("app:initialized");
+    huddleClient.on("room:joined", () => {
+      console.log("Room has joined successfully!!");
     });
     if (audioStream && audioRef.current)
       audioRef.current.srcObject = audioStream;
@@ -58,22 +59,25 @@ export default function Home() {
           {tracks.map((track, i) => (
             <VideoElem key={i} track={track.video} />
           ))}
+          {tracks.map((track, i) => (
+            <AudioElem key={i} track={track.audio} />
+          ))}
         </div>
       </div>
 
-      <div className="w-full">
+      <div className="">
         <div>Room</div>
-        <div className="flex gap-3  w-full">
+        <div className="flex gap-3">
           <Button
             onClick={() => {
-              huddleClient.initialize("pSNb4vwvAz7bbzQdVYCpHWHPO-BTV2oz");
+              huddleClient.initialize(process.env.NEXT_PUBLIC_PROJECT_ID!);
             }}
           >
             initialize()
           </Button>
           <Button
             onClick={() => {
-              huddleClient.joinLobby("ngo-tmvu-oxw");
+              huddleClient.joinLobby(process.env.NEXT_PUBLIC_ROOM_ID!);
             }}
           >
             joinLobby()
@@ -155,30 +159,32 @@ export default function Home() {
           </Button>
         </div>
         <div>Peers</div>
-        <Button
-          onClick={() => {
-            const _peers = huddleClient.getPeers();
-            console.log({ _peers });
+        <div className="flex gap-3">
+          <Button
+            onClick={() => {
+              const _peers = huddleClient.getPeers();
+              console.log({ _peers });
 
-            setPeers(_peers);
-          }}
-        >
-          getPeers()
-        </Button>
-        <Button
-          onClick={() => {
-            const _tracks = peers.map((peer) => {
-              console.log({ peer });
+              setPeers(_peers);
+            }}
+          >
+            getPeers()
+          </Button>
+          <Button
+            onClick={() => {
+              const _tracks = peers.map((peer) => {
+                console.log({ peer });
 
-              return huddleClient.getPeerTracks(peer.peerId);
-            });
+                return huddleClient.getPeerTracks(peer.peerId);
+              });
 
-            console.log({ _tracks });
-            setTracks(_tracks);
-          }}
-        >
-          getPeerTracks()
-        </Button>
+              console.log({ _tracks });
+              setTracks(_tracks);
+            }}
+          >
+            getPeerTracks()
+          </Button>
+        </div>
       </div>
     </main>
   );
